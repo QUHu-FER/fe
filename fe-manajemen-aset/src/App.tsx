@@ -47,6 +47,8 @@ function App() {
     const checkAuth = async () => {
       const encryptedToken = sessionStorage.getItem('token');
       const refreshToken = sessionStorage.getItem('refresh_token');
+      console.log('Encrypted Token:', encryptedToken);
+      console.log('Refresh Token:', refreshToken);
       
       if (!encryptedToken || !refreshToken) {
         setIsAuthenticated(false);
@@ -55,6 +57,7 @@ function App() {
 
       try {
         const token = decryptToken(encryptedToken);
+        console.log('Decrypted Token:', token);
         if (!token) {
           setIsAuthenticated(false);
           sessionStorage.removeItem('token');
@@ -63,6 +66,7 @@ function App() {
         }
 
         const response = await fetch(`https://manpro-mansetdig.vercel.app/auth/token/${token}`);
+        console.log('Token Validation Response Status:', response.status);
         
         if (response.status === 200) {
           setIsAuthenticated(true);
@@ -94,6 +98,7 @@ function App() {
       const refreshToken = sessionStorage.getItem('refresh_token');
       if (refreshToken) {
         const refreshed = await refreshAccessToken(refreshToken);
+        console.log('Refresh Token Attempt:', refreshed);
         if (!refreshed) {
           setIsAuthenticated(false);
           sessionStorage.removeItem('token');
