@@ -35,16 +35,16 @@ const ResetPassword = () => {
       // Validasi OTP
       setStep(2);
     } else {
-      if (!form.password || !form.confirm) {
-        toast.error('Semua field wajib diisi!');
-        return;
-      }
-      if (form.password !== form.confirm) {
-        toast.error('Konfirmasi kata sandi tidak cocok!');
-        return;
-      }
-      toast.success('Kata sandi berhasil diubah!');
-      navigate('/reset-success');
+    if (!form.password || !form.confirm) {
+      toast.error('Semua field wajib diisi!');
+      return;
+    }
+    if (form.password !== form.confirm) {
+      toast.error('Konfirmasi kata sandi tidak cocok!');
+      return;
+    }
+    toast.success('Kata sandi berhasil diubah!');
+    navigate('/reset-success');
     }
   };
 
@@ -144,8 +144,8 @@ const ResetPassword = () => {
                     mt: step === 2 ? 16 : 8
                   }}
                 >
-                  SELAMAT DATANG
-                </Typography>
+            SELAMAT DATANG
+          </Typography>
 
                 <Box
                   component="form"
@@ -281,16 +281,16 @@ const ResetPassword = () => {
                           marginTop: '-1rem'
                         }}
                       >
-                        <TextField
-                          fullWidth
+            <TextField
+              fullWidth
                           type={showPassword ? "text" : "password"}
                           placeholder="kata sandi baru"
-                          name="password"
-                          value={form.password}
-                          onChange={handleChange}
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
                                 <Box
                                   component="button"
                                   type="button"
@@ -322,29 +322,29 @@ const ResetPassword = () => {
                                     }}
                                   />
                                 </Box>
-                              </InputAdornment>
-                            ),
-                          }}
-                          sx={{
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
                             width: '282px',
-                            '& .MuiOutlinedInput-root': {
+                '& .MuiOutlinedInput-root': {
                               height: '36px',
                               backgroundColor: 'rgba(255, 255, 255, 0.8)',
                               borderRadius: '10px',
                               '& fieldset': { border: 'none' }
                             }
-                          }}
-                        />
-                        <TextField
-                          fullWidth
+              }}
+            />
+            <TextField
+              fullWidth
                           type={showConfirmPassword ? "text" : "password"}
                           placeholder="konfirmasi kata sandi"
-                          name="confirm"
-                          value={form.confirm}
-                          onChange={handleChange}
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
+              name="confirm"
+              value={form.confirm}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
                                 <Box
                                   component="button"
                                   type="button"
@@ -376,26 +376,26 @@ const ResetPassword = () => {
                                     }}
                                   />
                                 </Box>
-                              </InputAdornment>
-                            ),
-                          }}
-                          sx={{
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
                             width: '282px',
-                            '& .MuiOutlinedInput-root': {
+                '& .MuiOutlinedInput-root': {
                               height: '36px',
                               backgroundColor: 'rgba(255, 255, 255, 0.8)',
                               borderRadius: '10px',
                               '& fieldset': { border: 'none' }
                             }
-                          }}
-                        />
+              }}
+            />
                       </motion.div>
                     )}
                   </motion.div>
 
-                  <Button
-                    type="submit"
-                    sx={{
+            <Button
+              type="submit"
+              sx={{
                       width: '91px',
                       height: '36px',
                       background: '#1984FF',
@@ -403,17 +403,17 @@ const ResetPassword = () => {
                       borderRadius: '20px',
                       textTransform: 'none',
                       fontSize: '14px',
-                      fontWeight: 'bold',
+                fontWeight: 'bold',
                       mt: 3,
                       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
                       '&:hover': {
                         background: '#1565C0'
                       }
-                    }}
-                  >
+              }}
+            >
                     KIRIM
-                  </Button>
-                </Box>
+            </Button>
+          </Box>
               </motion.div>
             </motion.div>
           </AnimatePresence>

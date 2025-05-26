@@ -3,25 +3,144 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useState } from 'react';
 
-const AssetCard = () => {
+interface AssetCardProps {
+  id: string;
+  nama: string;
+  stok: number;
+  gambar: string;
+}
+
+const AssetCard = ({ id, nama, stok, gambar }: AssetCardProps) => {
   const [qty, setQty] = useState(0);
+
   return (
-    <Box sx={{ bgcolor: 'linear-gradient(135deg, #4fc3f7 0%, #1976d2 100%)', borderRadius: 6, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 3 }}>
-      <Box sx={{ width: 180, height: 180, borderRadius: 4, overflow: 'hidden', mb: 2, background: '#eee' }}>
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" alt="Aset" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <Box sx={{ 
+      bgcolor: '#4E71FF',
+      borderRadius: '15px',
+      p: 2,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      height: '100%',
+      boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      '&:hover': {
+        transform: 'translateY(-5px)',
+        boxShadow: '0px 6px 15px rgba(0, 0, 0, 0.2)'
+      }
+    }}>
+      <Box sx={{ 
+        width: '100%',
+        height: 180,
+        borderRadius: '12px',
+        overflow: 'hidden',
+        mb: 2,
+        bgcolor: '#fff'
+      }}>
+        <img 
+          src={gambar || 'https://via.placeholder.com/400x300'} 
+          alt={nama}
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover' 
+          }} 
+        />
       </Box>
-      <Typography fontWeight="bold" fontSize={26} color="white">Nama Aset</Typography>
-      <Typography fontSize={20} color="#b3e5fc" mb={1}>Stok aset</Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton onClick={() => setQty(qty > 0 ? qty - 1 : 0)} sx={{ color: 'white', bgcolor: '#1976d2', mr: 1 }}>
-          <RemoveIcon />
+
+      <Typography 
+        fontFamily="'Poppins', sans-serif"
+        fontWeight="600"
+        fontSize={16}
+        color="white"
+        align="center"
+        sx={{ mb: 1 }}
+      >
+        {nama}
+      </Typography>
+
+      <Typography 
+        fontFamily="'Poppins', sans-serif"
+        fontSize={14}
+        color="#e3f2fd"
+        mb={2}
+      >
+        Stok: {stok}
+      </Typography>
+
+      <Box sx={{ 
+        display: 'flex',
+        alignItems: 'center',
+        mb: 2,
+        bgcolor: 'rgba(255,255,255,0.1)',
+        borderRadius: '12px',
+        p: 0.5
+      }}>
+        <IconButton 
+          onClick={() => setQty(qty > 0 ? qty - 1 : 0)}
+          size="small"
+          sx={{ 
+            color: 'white',
+            bgcolor: 'rgba(0,0,0,0.1)',
+            '&:hover': {
+              bgcolor: 'rgba(0,0,0,0.2)'
+            }
+          }}
+        >
+          <RemoveIcon fontSize="small" />
         </IconButton>
-        <Typography fontWeight="bold" fontSize={22} color="white" sx={{ mx: 2 }}>{qty}</Typography>
-        <IconButton onClick={() => setQty(qty + 1)} sx={{ color: 'white', bgcolor: '#1976d2', ml: 1 }}>
-          <AddIcon />
+
+        <Typography 
+          fontFamily="'Poppins', sans-serif"
+          fontWeight="600"
+          fontSize={16}
+          color="white"
+          sx={{ mx: 2 }}
+        >
+          {qty}
+        </Typography>
+
+        <IconButton 
+          onClick={() => qty < stok && setQty(qty + 1)}
+          size="small"
+          sx={{ 
+            color: 'white',
+            bgcolor: 'rgba(0,0,0,0.1)',
+            '&:hover': {
+              bgcolor: 'rgba(0,0,0,0.2)'
+            }
+          }}
+        >
+          <AddIcon fontSize="small" />
         </IconButton>
       </Box>
-      <Button variant="contained" sx={{ bgcolor: 'white', color: '#1976d2', fontWeight: 'bold', borderRadius: 3, px: 3, py: 1, fontSize: 18, boxShadow: 2 }}>
+
+      <Button 
+        variant="contained"
+        disabled={qty === 0}
+        onClick={() => {
+          // TODO: Implement peminjaman aset
+          console.log('Meminjam aset:', { id, qty });
+        }}
+        sx={{ 
+          bgcolor: 'white',
+          color: '#4E71FF',
+          fontFamily: "'Poppins', sans-serif",
+          fontWeight: '600',
+          borderRadius: '12px',
+          px: 2,
+          py: 0.5,
+          fontSize: 13,
+          textTransform: 'none',
+          '&:hover': {
+            bgcolor: '#f5f5f5'
+          },
+          '&.Mui-disabled': {
+            bgcolor: 'rgba(255,255,255,0.5)',
+            color: '#4E71FF'
+          }
+        }}
+      >
         Tambahkan ke List
       </Button>
     </Box>

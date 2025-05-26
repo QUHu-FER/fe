@@ -8,7 +8,6 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
-import CryptoJS from 'crypto-js';
 
 interface LoginProps {
   setIsAuthenticated: (value: boolean) => void;
@@ -21,12 +20,6 @@ const Login = ({ setIsAuthenticated }: LoginProps) => {
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-
-  // Fungsi untuk mengenkripsi token sebelum disimpan
-  const encryptToken = (token: string) => {
-    const secretKey = 'your-secret-key';
-    return CryptoJS.AES.encrypt(token, secretKey).toString();
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,75 +36,60 @@ const Login = ({ setIsAuthenticated }: LoginProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const params = new URLSearchParams();
-      params.append('username', formData.username);
-      params.append('password', formData.password);
+      const formBody = new URLSearchParams();
+      formBody.append('username', formData.username);
+      formBody.append('password', formData.password);
 
       const response = await fetch('https://manpro-mansetdig.vercel.app/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: params
+        body: formBody
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Invalid username or password');
+        throw new Error(errorData.message || 'Login gagal');
       }
-      
+
       const data = await response.json();
       
       if (data && data.access_token) {
-        const encryptedToken = encryptToken(data.access_token);
-        sessionStorage.setItem('token', encryptedToken);
-        sessionStorage.removeItem('userRole');
+        // Simpan token tanpa enkripsi
+        sessionStorage.setItem('token', data.access_token);
         
+        // Get user data
         try {
-          const tokenData = parseJwt(data.access_token);
-          if (tokenData && tokenData.username) {
-            const userResponse = await fetch(`https://manpro-mansetdig.vercel.app/user/${tokenData.username}`, {
-              headers: {
-                'Authorization': `Bearer ${data.access_token}`
-              }
-            });
-            
-            if (!userResponse.ok) {
-              throw new Error(`HTTP error! Status: ${userResponse.status}`);
+          const userResponse = await fetch('https://manpro-mansetdig.vercel.app/user/get_account', {
+            headers: {
+              'Authorization': `Bearer ${data.access_token}`
             }
-            
-            const userData = await userResponse.json();
-            if (userData && userData.role) {
-              sessionStorage.setItem('userRole', userData.role);
-            }
+          });
+
+          if (!userResponse.ok) {
+            throw new Error('Gagal mengambil data user');
           }
+
+          const userData = await userResponse.json();
+          sessionStorage.setItem('userRole', userData.role || 'user');
+          
+          setIsAuthenticated(true);
+          navigate('/dashboard');
+          toast.success('Login berhasil!');
         } catch (userError) {
           console.error('Error fetching user data:', userError);
+          // Tetap set role default dan lanjut ke dashboard
+          sessionStorage.setItem('userRole', 'user');
+          setIsAuthenticated(true);
+          navigate('/dashboard');
         }
-        
-        setIsAuthenticated(true);
-        navigate('/dashboard');
-        toast.success('Login berhasil!');
+      } else {
+        throw new Error('Token tidak ditemukan dalam response');
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error(error.message || 'Terjadi kesalahan saat login.');
-    }
-  };
-
-  const parseJwt = (token: string) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Error parsing JWT token:', error);
-      return null;
     }
   };
 
@@ -293,7 +271,6 @@ const Login = ({ setIsAuthenticated }: LoginProps) => {
             >
               MASUK
             </Button>
-
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mt: 1 }}>
@@ -388,7 +365,7 @@ const Login = ({ setIsAuthenticated }: LoginProps) => {
               zIndex: 1,
               mt: 4,
               filter: 'brightness(0) invert(1)',
-              transform: 'translateX(-8px)' // Menggeser sedikit ke kiri
+              transform: 'translateX(-8px)'
             }}
           />
         </Box>
