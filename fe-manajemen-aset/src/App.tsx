@@ -1,146 +1,92 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login/Login';
 import ResetPassword from './pages/Login/ResetPassword';
 import ResetSuccess from './pages/Login/ResetSuccess';
-import { useEffect, useState } from 'react';
-import CryptoJS from 'crypto-js';
+import { useEffect, useState, createContext, useContext } from 'react';
 import Dashboard from './pages/Dashboard/Dashboard';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+// Buat context untuk autentikasi
+export const AuthContext = createContext<{
+  isAuthenticated: boolean;
+  setIsAuthenticated: (value: boolean) => void;
+  logout: () => void;
+}>({
+  isAuthenticated: false,
+  setIsAuthenticated: () => {},
+  logout: () => {}
+});
 
-  // Fungsi untuk mendekripsi token
-  const decryptToken = (encryptedToken: string) => {
-    try {
-      const secretKey = 'your-secret-key';
-      const bytes = CryptoJS.AES.decrypt(encryptedToken, secretKey);
-      return bytes.toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-      console.error('Error decrypting token:', error);
-      return null;
-    }
-  };
+// Hook untuk menggunakan auth context
+export const useAuth = () => useContext(AuthContext);
 
-  // Fungsi untuk me-refresh token
-  const refreshAccessToken = async (refreshToken: string) => {
-    try {
-      const response = await fetch(`https://manpro-mansetdig.vercel.app/auth/refresh/${refreshToken}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        sessionStorage.setItem('token', data.access_token);
-        sessionStorage.setItem('refresh_token', data.refresh_token);
-        return true;
-      }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-    }
-    return false;
+const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const logout = () => {
+    // Hapus semua data sesi
+    sessionStorage.clear();
+    // Update state autentikasi
+    setIsAuthenticated(false);
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const encryptedToken = sessionStorage.getItem('token');
-      const refreshToken = sessionStorage.getItem('refresh_token');
-      console.log('Encrypted Token:', encryptedToken);
-      console.log('Refresh Token:', refreshToken);
-      
-      if (!encryptedToken || !refreshToken) {
-        setIsAuthenticated(false);
-        return;
+    const checkAuth = () => {
+      const token = sessionStorage.getItem('token');
+      if (token) {
+        setIsAuthenticated(true);
       }
-
-      try {
-        const token = decryptToken(encryptedToken);
-        console.log('Decrypted Token:', token);
-        if (!token) {
-          setIsAuthenticated(false);
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('refresh_token');
-          return;
-        }
-
-        const response = await fetch(`https://manpro-mansetdig.vercel.app/auth/token/${token}`);
-        console.log('Token Validation Response Status:', response.status);
-        
-        if (response.status === 200) {
-          setIsAuthenticated(true);
-        } else if (response.status === 401) {
-          const refreshed = await refreshAccessToken(refreshToken);
-          if (refreshed) {
-            setIsAuthenticated(true);
-          } else {
-            setIsAuthenticated(false);
-            sessionStorage.removeItem('token');
-            sessionStorage.removeItem('refresh_token');
-          }
-        } else {
-          setIsAuthenticated(false);
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('refresh_token');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        setIsAuthenticated(false);
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('refresh_token');
-      }
+      setIsLoading(false);
     };
 
     checkAuth();
-
-    const interval = setInterval(async () => {
-      const refreshToken = sessionStorage.getItem('refresh_token');
-      if (refreshToken) {
-        const refreshed = await refreshAccessToken(refreshToken);
-        console.log('Refresh Token Attempt:', refreshed);
-        if (!refreshed) {
-          setIsAuthenticated(false);
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('refresh_token');
-        }
-      }
-    }, 15 * 60 * 1000); // Setiap 15 menit
-
-    return () => clearInterval(interval);
   }, []);
 
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <Router>
-      <Toaster position="top-right" />
-      <Routes>
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login setIsAuthenticated={setIsAuthenticated} />}
-        />
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
-        <Route
-          path="/reset-success"
-          element={<ResetSuccess />}
-        />
-        <Route
-          path="/"
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
-        />
-      </Routes>
-    </Router>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, logout }}>
+      <BrowserRouter>
+        <Toaster position="top-right" />
+        <Routes>
+          {/* Root route - redirect berdasarkan auth status */}
+          <Route 
+            path="/" 
+            element={
+              <Navigate to={isAuthenticated ? "/dashboard/peminjaman" : "/login"} replace />
+            } 
+          />
+
+          {/* Login route - redirect ke dashboard/peminjaman jika sudah auth */}
+          <Route 
+            path="/login" 
+            element={
+              isAuthenticated ? 
+                <Navigate to="/dashboard/peminjaman" replace /> : 
+                <Login setIsAuthenticated={setIsAuthenticated} />
+            } 
+          />
+
+          {/* Dashboard routes - protected by auth */}
+          <Route
+            path="/dashboard/*"
+            element={
+              isAuthenticated ? 
+                <Dashboard /> : 
+                <Navigate to="/login" replace />
+            }
+          />
+
+          {/* Public routes */}
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-success" element={<ResetSuccess />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthContext.Provider>
   );
-}
+};
 
 export default App;
